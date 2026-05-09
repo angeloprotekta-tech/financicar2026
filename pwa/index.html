@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Financiamento"/>
+  <meta name="theme-color" content="#1a73e8"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <title>Financiamento Veicular</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #0d47a1;
+      --accent: #e53935;
+      --green: #2e7d32;
+      --bg: #f0f4ff;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --sub: #666;
+      --radius: 16px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      overscroll-behavior: none;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    /* ── STATUS BAR SPACER ── */
+    .status-bar {
+      height: var(--safe-top);
+      background: var(--primary-dark);
+    }
+
+    /* ── TOP HEADER ── */
+    .top-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      padding: 18px 20px 22px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-header::after {
+      content: '';
+      position: absolute;
+      bottom: -20px; left: 0; right: 0;
+      height: 40px;
+      background: var(--bg);
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    .top-header .row { display: flex; align-items: center; gap: 12px; }
+    .top-header .icon-wrap {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .top-header h1 { font-size: 1.15rem; font-weight: 700; }
+    .top-header p { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
+
+    /* ── SCROLL AREA ── */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 16px calc(16px + var(--safe-bot));
+    }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(26,115,232,0.08);
+    }
+
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ── FIELD ── */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--sub);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      background: #f5f7ff;
+      border: 1.5px solid #dde4f5;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrap:focus-within {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+    }
+
+    .prefix {
+      padding: 0 12px;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.9rem;
+      background: rgba(26,115,232,0.07);
+      height: 48px;
+      display: flex; align-items: center;
+      border-right: 1.5px solid #dde4f5;
+      white-space: nowrap;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 0 14px;
+      height: 48px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* ── SLIDER ── */
+    .slider-field { }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .slider-value {
+      background: var(--primary);
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #dde4f5;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 3px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 2px 8px rgba(26,115,232,0.4);
+      cursor: pointer;
+      margin-top: -10px;
+    }
+
+    .slider-minmax {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    /* ── MESES CHIPS ── */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #dde4f5;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--sub);
+      background: #f5f7ff;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 3px 10px rgba(26,115,232,0.3);
+    }
+
+    /* INPUT MANUAL MESES */
+    .meses-custom {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .meses-custom span { font-size: 0.78rem; color: var(--sub); }
+    .meses-custom input {
+      width: 70px; height: 38px;
+      border: 1.5px solid #dde4f5;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: #f5f7ff;
+      outline: none;
+    }
+    .meses-custom input:focus { border-color: var(--primary); }
+
+    /* ── BTN CALCULAR ── */
+    .btn-calcular {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 6px 20px rgba(26,115,232,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-bottom: 14px;
+    }
+
+    .btn-calcular:active {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(26,115,232,0.2);
+    }
+
+    /* ── RESULTADO ── */
+    #resultado { display: none; }
+
+    .res-header {
+      background: linear-gradient(135deg, #1b5e20, #2e7d32);
+      border-radius: var(--radius);
+      padding: 16px;
+      color: white;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .res-header .icon { font-size: 28px; }
+    .res-header h2 { font-size: 1rem; font-weight: 700; }
+    .res-header p { font-size: 0.78rem; opacity: 0.85; margin-top: 2px; }
+
+    /* PARCELA DESTAQUE */
+    .parcela-card {
+      background: linear-gradient(135deg, var(--accent), #b71c1c);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      color: white;
+      text-align: center;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(229,57,53,0.3);
+    }
+
+    .parcela-card .label { font-size: 0.75rem; opacity: 0.85; margin-bottom: 4px; }
+    .parcela-card .val { font-size: 2rem; font-weight: 800; }
+    .parcela-card .sub { font-size: 0.78rem; opacity: 0.8; margin-top: 4px; }
+
+    /* MINI CARDS */
+    .mini-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mini-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px 12px;
+      box-shadow: 0 2px 10px rgba(26,115,232,0.07);
+      border-left: 3px solid var(--primary);
+    }
+
+    .mini-card .label { font-size: 0.68rem; color: var(--sub); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .mini-card .val { font-size: 0.95rem; font-weight: 800; color: var(--text); }
+
+    /* BARRA PROGRESSO */
+    .barra-section {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(26,115,232,0.07);
+    }
+
+    .barra-title { font-size: 0.72rem; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 12px; }
+
+    .barra-item { margin-bottom: 12px; }
+    .barra-item:last-child { margin-bottom: 0; }
+    .barra-item .info { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.78rem; }
+    .barra-item .info .name { font-weight: 600; }
+    .barra-item .info .pct { color: var(--sub); }
+    .barra-track { background: #eee; border-radius: 4px; height: 8px; overflow: hidden; }
+    .barra-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+    /* TABELA */
+    .tabela-section {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(26,115,232,0.07);
+    }
+
+    .tabela-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .tabela-toggle .arrow { transition: transform 0.2s; font-size: 0.75rem; }
+    .tabela-toggle.open .arrow { transform: rotate(180deg); }
+
+    .tabela-body { display: none; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 360px; }
+    thead th {
+      background: #e8f0fe; color: var(--primary);
+      padding: 10px 10px; text-align: right; font-weight: 700;
+      font-size: 0.7rem; text-transform: uppercase; position: sticky; top: 0;
+    }
+    thead th:first-child { text-align: center; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    td { padding: 9px 10px; text-align: right; border-bottom: 1px solid #f0f0f0; }
+    td:first-child { text-align: center; font-weight: 700; color: var(--primary); }
+
+    .alerta {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      color: #e65100;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* INSTALAR BANNER */
+    .install-banner {
+      display: none;
+      background: linear-gradient(135deg, #1b5e20, #2e7d32);
+      color: white;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .install-banner .icon { font-size: 28px; }
+    .install-banner p { flex: 1; font-size: 0.82rem; line-height: 1.4; }
+    .install-banner strong { display: block; font-size: 0.88rem; margin-bottom: 2px; }
+    .install-btn {
+      background: white; color: #2e7d32;
+      border: none; padding: 8px 14px;
+      border-radius: 20px; font-weight: 700; font-size: 0.8rem;
+      cursor: pointer; white-space: nowrap;
+    }
+
+    /* ── ANIMATIONS ── */
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Bottom safe area */
+    .bottom-safe { height: var(--safe-bot); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="status-bar"></div>
+
+  <!-- HEADER -->
+  <div class="top-header">
+    <div class="row">
+      <div class="icon-wrap">🚗</div>
+      <div>
+        <h1>Financiamento Veicular</h1>
+        <p>Simule seu financiamento agora</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- BANNER INSTALAR -->
+    <div class="install-banner" id="installBanner">
+      <span class="icon">📲</span>
+      <p><strong>Instalar app</strong>Adicione à tela inicial para acesso rápido offline</p>
+      <button class="install-btn" id="installBtn">Instalar</button>
+    </div>
+
+    <!-- VEÍCULO E ENTRADA -->
+    <div class="section-card">
+      <div class="section-title">🚘 Dados do Veículo</div>
+
+      <div class="field">
+        <label>Valor do Veículo</label>
+        <div class="input-wrap">
+          <span class="prefix">R$</span>
+          <input type="number" id="valorVeiculo" inputmode="decimal" placeholder="50000" value="50000"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Valor de Entrada</label>
+        <div class="input-wrap">
+          <span class="prefix">R$</span>
+          <input type="number" id="valorEntrada" inputmode="decimal" placeholder="10000" value="10000"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Taxas / IOF / Custo do Contrato</label>
+        <div class="input-wrap">
+          <span class="prefix">R$</span>
+          <input type="number" id="valorContrato" inputmode="decimal" placeholder="0" value="0"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAXA DE JUROS -->
+    <div class="section-card">
+      <div class="section-title">📈 Taxa de Juros</div>
+      <div class="field slider-field">
+        <div class="slider-top">
+          <label style="margin:0">Juros Mensal</label>
+          <div class="slider-value" id="taxaLabel">1,50% a.m.</div>
+        </div>
+        <input type="range" id="taxaJuros" min="0.5" max="5.0" step="0.05" value="1.5" oninput="updateTaxa()"/>
+        <div class="slider-minmax"><span>0,5%</span><span>5,0%</span></div>
+      </div>
+      <div class="field" style="margin-top:4px">
+        <label>Taxa Anual Equivalente</label>
+        <div class="input-wrap" style="background:#f5f7ff;border-color:#dde4f5;">
+          <span class="prefix" style="background:rgba(46,125,50,0.08);border-color:#dde4f5;color:#2e7d32;">%</span>
+          <input type="number" id="taxaAnualInput" inputmode="decimal" placeholder="19.56" value="19.56" oninput="taxaAnualChanged()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- MESES -->
+    <div class="section-card">
+      <div class="section-title">📅 Prazo de Parcelamento</div>
+      <div class="chips" id="chips">
+        <div class="chip" onclick="selectChip(this,12)">12x</div>
+        <div class="chip" onclick="selectChip(this,24)">24x</div>
+        <div class="chip active" onclick="selectChip(this,36)">36x</div>
+        <div class="chip" onclick="selectChip(this,48)">48x</div>
+        <div class="chip" onclick="selectChip(this,60)">60x</div>
+        <div class="chip" onclick="selectChip(this,72)">72x</div>
+      </div>
+      <div class="meses-custom">
+        <span>Personalizado:</span>
+        <input type="number" id="mesesCustom" inputmode="numeric" min="1" max="120" value="36" onchange="customMeses()"/>
+        <span>meses</span>
+      </div>
+    </div>
+
+    <!-- BTN -->
+    <button class="btn-calcular" onclick="calcular()">
+      ⚡ Calcular Financiamento
+    </button>
+
+    <!-- RESULTADO -->
+    <div id="resultado">
+
+      <div class="alerta" id="alerta">⚠️ A entrada é maior ou igual ao valor do veículo.</div>
+
+      <div class="res-header fade-in">
+        <div class="icon">✅</div>
+        <div>
+          <h2>Simulação Concluída</h2>
+          <p id="resSubtitle">—</p>
+        </div>
+      </div>
+
+      <div class="parcela-card fade-in">
+        <div class="label">PARCELA MENSAL (Sistema Price)</div>
+        <div class="val" id="resParcela">—</div>
+        <div class="sub" id="resParcelaSub">—</div>
+      </div>
+
+      <div class="mini-cards fade-in">
+        <div class="mini-card">
+          <div class="label">Valor Financiado</div>
+          <div class="val" id="resFinanciado">—</div>
+        </div>
+        <div class="mini-card" style="border-left-color:#e53935">
+          <div class="label">Total Pago</div>
+          <div class="val" id="resTotal">—</div>
+        </div>
+        <div class="mini-card" style="border-left-color:#ff9800">
+          <div class="label">Total de Juros</div>
+          <div class="val" id="resJuros">—</div>
+        </div>
+        <div class="mini-card" style="border-left-color:#2e7d32">
+          <div class="label">Taxa Anual (a.a.)</div>
+          <div class="val" id="resTaxaAnual">—</div>
+        </div>
+      </div>
+
+      <!-- BARRA COMPOSIÇÃO -->
+      <div class="barra-section fade-in">
+        <div class="barra-title">Composição do Custo Total</div>
+        <div class="barra-item">
+          <div class="info">
+            <span class="name">💵 Entrada</span>
+            <span class="pct" id="pctEntrada">—</span>
+          </div>
+          <div class="barra-track"><div class="barra-fill" id="barraEntrada" style="background:#1a73e8;width:0%"></div></div>
+        </div>
+        <div class="barra-item">
+          <div class="info">
+            <span class="name">🏦 Capital Financiado</span>
+            <span class="pct" id="pctCapital">—</span>
+          </div>
+          <div class="barra-track"><div class="barra-fill" id="barraCapital" style="background:#0d47a1;width:0%"></div></div>
+        </div>
+        <div class="barra-item">
+          <div class="info">
+            <span class="name">📈 Juros Pagos</span>
+            <span class="pct" id="pctJuros">—</span>
+          </div>
+          <div class="barra-track"><div class="barra-fill" id="barraJuros" style="background:#e53935;width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- TABELA AMORTIZAÇÃO -->
+      <div class="tabela-section fade-in">
+        <div class="tabela-toggle" id="tabelaToggle" onclick="toggleTabela()">
+          <span>📋 Tabela de Amortização</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="tabela-body" id="tabelaBody">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Parcela</th>
+                <th>Juros</th>
+                <th>Amort.</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaLinhas"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /resultado -->
+
+    <div class="bottom-safe"></div>
+  </div><!-- /scroll-area -->
+</div><!-- /app -->
+
+<script>
+  // ── SLIDERS ──────────────────────────────────────────
+  let mesesSelecionados = 36;
+
+  function updateTaxa() {
+    const v = parseFloat(document.getElementById('taxaJuros').value);
+    document.getElementById('taxaLabel').textContent = v.toFixed(2).replace('.', ',') + '% a.m.';
+    const taxaAnual = (Math.pow(1 + v / 100, 12) - 1) * 100;
+    document.getElementById('taxaAnualInput').value = taxaAnual.toFixed(2);
+    updateSliderBg('taxaJuros', 0.5, 5.0);
+  }
+
+  function taxaAnualChanged() {
+    const anual = parseFloat(document.getElementById('taxaAnualInput').value) || 0;
+    const mensal = (Math.pow(1 + anual / 100, 1 / 12) - 1) * 100;
+    const clamped = Math.min(Math.max(mensal, 0.5), 5.0);
+    document.getElementById('taxaJuros').value = clamped.toFixed(2);
+    document.getElementById('taxaLabel').textContent = clamped.toFixed(2).replace('.', ',') + '% a.m.';
+    updateSliderBg('taxaJuros', 0.5, 5.0);
+  }
+
+  function updateSliderBg(id, min, max) {
+    const el = document.getElementById(id);
+    const pct = ((parseFloat(el.value) - min) / (max - min)) * 100;
+    el.style.background = `linear-gradient(to right, #1a73e8 ${pct}%, #dde4f5 ${pct}%)`;
+  }
+
+  function selectChip(el, val) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    mesesSelecionados = val;
+    document.getElementById('mesesCustom').value = val;
+  }
+
+  function customMeses() {
+    const v = parseInt(document.getElementById('mesesCustom').value) || 36;
+    mesesSelecionados = v;
+    document.querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', parseInt(c.textContent) === v);
+    });
+  }
+
+  // ── FORMATAÇÃO ────────────────────────────────────────
+  function fmt(v) {
+    return 'R$ ' + v.toFixed(2)
+      .replace('.', ',')
+      .replace(/\B(?=(\d{3})+(?=,))/g, '.');
+  }
+
+  // ── CALCULAR ──────────────────────────────────────────
+  function calcular() {
+    const valorVeiculo  = parseFloat(document.getElementById('valorVeiculo').value) || 0;
+    const valorEntrada  = parseFloat(document.getElementById('valorEntrada').value) || 0;
+    const taxa          = parseFloat(document.getElementById('taxaJuros').value) / 100;
+    const meses         = mesesSelecionados;
+    const taxasContrato = parseFloat(document.getElementById('valorContrato').value) || 0;
+
+    const resDiv = document.getElementById('resultado');
+    const alerta = document.getElementById('alerta');
+    resDiv.style.display = 'block';
+
+    const financiado = valorVeiculo - valorEntrada + taxasContrato;
+
+    if (financiado <= 0) {
+      alerta.style.display = 'block';
+      resDiv.querySelectorAll('.parcela-card,.mini-cards,.barra-section,.tabela-section,.res-header').forEach(e => e.style.opacity = '0.3');
+      resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    alerta.style.display = 'none';
+    resDiv.querySelectorAll('.parcela-card,.mini-cards,.barra-section,.tabela-section,.res-header').forEach(e => e.style.opacity = '1');
+
+    // Price
+    const parcela   = financiado * (taxa * Math.pow(1 + taxa, meses)) / (Math.pow(1 + taxa, meses) - 1);
+    const totalPago = parcela * meses + valorEntrada;
+    const totalJuros = (parcela * meses) - financiado;
+    const taxaAnual  = (Math.pow(1 + taxa, 12) - 1) * 100;
+
+    document.getElementById('resSubtitle').textContent = `${meses}x de ${fmt(parcela)} • Taxa ${(taxa*100).toFixed(2).replace('.',',')}% a.m.`;
+    document.getElementById('resParcela').textContent  = fmt(parcela);
+    document.getElementById('resParcelaSub').textContent = `${meses} parcelas • Total ${fmt(totalPago)}`;
+    document.getElementById('resFinanciado').textContent = fmt(financiado);
+    document.getElementById('resTotal').textContent      = fmt(totalPago);
+    document.getElementById('resJuros').textContent      = fmt(totalJuros);
+    document.getElementById('resTaxaAnual').textContent  = taxaAnual.toFixed(2).replace('.', ',') + '%';
+
+    // Barras
+    const pE = (valorEntrada / totalPago * 100);
+    const pC = ((financiado - taxasContrato) / totalPago * 100);
+    const pJ = (totalJuros / totalPago * 100);
+
+    document.getElementById('pctEntrada').textContent = pE.toFixed(1) + '%';
+    document.getElementById('pctCapital').textContent = pC.toFixed(1) + '%';
+    document.getElementById('pctJuros').textContent   = pJ.toFixed(1) + '%';
+    setTimeout(() => {
+      document.getElementById('barraEntrada').style.width = pE + '%';
+      document.getElementById('barraCapital').style.width = pC + '%';
+      document.getElementById('barraJuros').style.width   = pJ + '%';
+    }, 100);
+
+    // Tabela
+    const tbody = document.getElementById('tabelaLinhas');
+    tbody.innerHTML = '';
+    let saldo = financiado;
+    for (let i = 1; i <= meses; i++) {
+      const juros = saldo * taxa;
+      const amort = parcela - juros;
+      saldo -= amort;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i}</td><td>${fmt(parcela)}</td><td>${fmt(juros)}</td><td>${fmt(amort)}</td><td>${fmt(Math.max(0, saldo))}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function toggleTabela() {
+    const body    = document.getElementById('tabelaBody');
+    const toggle  = document.getElementById('tabelaToggle');
+    const isOpen  = body.style.display === 'block';
+    body.style.display  = isOpen ? 'none' : 'block';
+    toggle.classList.toggle('open', !isOpen);
+  }
+
+  // ── INIT ─────────────────────────────────────────────
+  updateTaxa();
+
+  // ── SERVICE WORKER ────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // ── PWA INSTALL ───────────────────────────────────────
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').style.display = 'flex';
+  });
+
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        document.getElementById('installBanner').style.display = 'none';
+      }
+      deferredPrompt = null;
+    }
+  });
+</script>
+</body>
+</html>
